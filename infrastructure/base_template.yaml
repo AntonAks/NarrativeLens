@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Base infrastructure for NarrativeLens project'
+
+Resources:
+  ## 📌 S3 Bucket for Storing Parsed News
+  NewsDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'narrativelens-data-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+
+  ## 📌 IAM Role for Lambda Execution
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'narrativelens-lambda-role-${AWS::AccountId}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: ['sts:AssumeRole']
+      Policies:
+        - PolicyName: S3WriteAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:aws:s3:::narrativelens-data-${AWS::AccountId}'
+                  - !Sub 'arn:aws:s3:::narrativelens-data-${AWS::AccountId}/*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+
+  ## 📌 Lambda Layer for Shared Tools
+  LambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: !Sub 'narrativelens-shared-tools-${AWS::AccountId}'
+      Content:
+        S3Bucket: !Ref NewsDataBucket
+        S3Key: "layers/shared_tools.zip"
+      CompatibleRuntimes:
+        - python3.9
+      RetentionPolicy: Retain
+
+  ## 📌 Lambda Function for Parsing News
+  NewsParserLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'narrativelens-liga-parser-${AWS::AccountId}'
+      Runtime: python3.9
+      Handler: handler.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref NewsDataBucket
+        S3Key: "lambdas/liga_parser.zip"
+      Layers:
+        - !Ref LambdaLayer
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref NewsDataBucket
+      Timeout: 60
+      MemorySize: 256
