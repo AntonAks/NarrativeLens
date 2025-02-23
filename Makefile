@@ -1,16 +1,19 @@
 STACK_NAME=narrativelens
 BUCKET_NAME=narrativelens-data-$(shell aws sts get-caller-identity --query Account --output text)
 
-.PHONY: build_layer deploy_layer build_lambda deploy_lambda deploy_all delete_all clean
+.PHONY: build-layer compile-requirements
 
 ## 1. Build Layers (Update dependencies & create ZIP)
-build_layer:
+build-layer:
 	cd lambda_functions/parsers/liga
 	pip-compile requirements.in -o requirements.txt
 	mkdir -p lambda_functions/parsers/liga/python
 	pip install --target lambda_functions/parsers/liga/python -r requirements.txt
 	zip -r lambda_functions/parsers/liga/layer.zip lambda_functions/parsers/liga/python
 	rm -rf lambda_functions/parsers/liga/python
+
+compile-requirements:
+	pip-compile --output-file=requirements.txt requirements.in
 
 ## 2. Upload Layer to S3
 #deploy_layer: build_layer

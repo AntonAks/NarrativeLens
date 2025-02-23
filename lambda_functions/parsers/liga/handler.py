@@ -48,3 +48,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'file_path': file_path
             })
         }
+
+if __name__ == '__main__':
+    lambda_handler({}, None)
