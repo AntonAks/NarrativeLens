@@ -1,45 +1,34 @@
-STACK_NAME=narrativelens
-BUCKET_NAME=narrativelens-data-$(shell aws sts get-caller-identity --query Account --output text)
+LAMBDA_DIR=lambda_functions/parsers
+SHARED_TOOLS=shared_tools
+OUTPUT_DIR=lambda_packages
 
-.PHONY: build-layer compile-requirements
+build-parser-layers:
+	@echo "Building Lambda layer..."
+	cd $(LAMBDA_DIR) && \
+	pip-compile requirements.in -o requirements.txt && \
+	mkdir -p python && \
+	pip install --target python -r requirements.txt && \
+	zip -r layer.zip python && \
+	rm -rf python
 
-## 1. Build Layers (Update dependencies & create ZIP)
-build-layer:
-	cd lambda_functions/parsers/liga
-	pip-compile requirements.in -o requirements.txt
-	mkdir -p lambda_functions/parsers/liga/python
-	pip install --target lambda_functions/parsers/liga/python -r requirements.txt
-	zip -r lambda_functions/parsers/liga/layer.zip lambda_functions/parsers/liga/python
-	rm -rf lambda_functions/parsers/liga/python
+prepare-parser-lambdas: build-parser-layers
+	@echo "Preparing Lambda functions..."
+	@mkdir -p $(OUTPUT_DIR)
+	@cp $(LAMBDA_DIR)/layer.zip $(OUTPUT_DIR)/
+	@for lambda in $(LAMBDA_DIR)/*; do \
+		if [ -d "$$lambda" ] && [ "$$lambda" != "$(LAMBDA_DIR)/python" ]; then \
+			name=$$(basename $$lambda); \
+			echo "Packaging Lambda: $$name"; \
+			mkdir -p $(OUTPUT_DIR)/$$name; \
+			cp -r $$lambda/* $(OUTPUT_DIR)/$$name/; \
+			cp -r $(SHARED_TOOLS) $(OUTPUT_DIR)/$$name/; \
+			cd $(OUTPUT_DIR)/$$name && zip -r ../$$name.zip .; \
+			cd - > /dev/null; \
+			rm -rf $(OUTPUT_DIR)/$$name; \
+		fi \
+	done
+	@echo "Packaging complete!"
 
-compile-requirements:
-	pip-compile --output-file=requirements.txt requirements.in
-
-## 2. Upload Layer to S3
-#deploy_layer: build_layer
-#	aws s3 cp layer/shared_tools.zip s3://$(BUCKET_NAME)/layers/shared_tools.zip
-
-### 3. Build Lambda ZIP
-#build_lambda:
-#	cd lambda_functions/parsers/liga && zip -r ../../../liga_parser.zip .
-#
-### 4. Upload Lambda to S3
-#deploy_lambda: build_lambda
-#	aws s3 cp liga_parser.zip s3://$(BUCKET_NAME)/lambdas/liga_parser.zip
-#
-### 5. Deploy all (CloudFormation + Lambdas + Layer)
-#deploy_all: deploy_layer deploy_lambda
-#	aws cloudformation deploy \
-#		--stack-name $(STACK_NAME) \
-#		--template-file infrastructure/base_template.yaml \
-#		--capabilities CAPABILITY_NAMED_IAM
-#
-### 6. Delete all (CloudFormation + S3 cleanup)
-#delete_all:
-#	aws s3 rm s3://$(BUCKET_NAME)/layers/ --recursive
-#	aws s3 rm s3://$(BUCKET_NAME)/lambdas/ --recursive
-#	aws cloudformation delete-stack --stack-name $(STACK_NAME)
-#
-### Cleanup local artifacts
-#clean:
-#	rm -rf layer python shared_tools.zip liga_parser.zip
+clean:
+	@echo "Cleaning up..."
+	rm -rf $(OUTPUT_DIR)

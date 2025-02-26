@@ -1,4 +1,0 @@
-boto3==1.36.24
-beautifulsoup4==4.13.3
-requests==2.32.3
-pip-tools==7.4.1

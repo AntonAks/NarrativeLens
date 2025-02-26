@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from typing import Any, Dict
 from shared_tools.s3_helper import S3Uploader
 
-URL = "https://news.liga.net/ua"
+URL = "https://news.liga.net/en"
 PARSER_NAME = "liga"
 
 bucket_name = os.environ.get("BUCKET_NAME", 'narrative-lens-test')
@@ -48,6 +48,3 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'file_path': file_path
             })
         }
-
-if __name__ == '__main__':
-    lambda_handler({}, None)
