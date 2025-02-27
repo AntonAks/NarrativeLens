@@ -9,7 +9,7 @@ from shared_tools.s3_helper import S3Uploader
 URL = "https://edition.cnn.com/politics"
 PARSER_NAME = "cnn_politics"
 
-bucket_name = os.environ.get("BUCKET_NAME", 'narrative-lens-test')
+bucket_name = os.environ.get("NEWS_DATA_BUCKET", 'narrative-lens-test')
 s3_uploader = S3Uploader(bucket_name)
 
 

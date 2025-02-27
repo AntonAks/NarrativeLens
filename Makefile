@@ -23,7 +23,7 @@ prepare-parser-lambdas: build-parser-layers
 			mkdir -p $(OUTPUT_DIR)/$$name; \
 			cp -r $$lambda/* $(OUTPUT_DIR)/$$name/; \
 			cp -r $(SHARED_TOOLS) $(OUTPUT_DIR)/$$name/; \
-			cd $(OUTPUT_DIR)/$$name && zip -r ../$$name.zip .; \
+			cd $(OUTPUT_DIR)/$$name && zip -r ../$$name.zip . --exclude '*/__pycache__/*'; \
 			cd - > /dev/null; \
 			rm -rf $(OUTPUT_DIR)/$$name; \
 		fi \
