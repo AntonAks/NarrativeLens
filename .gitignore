@@ -1,3 +1,12 @@
 .idea
 __pycache__
 *.zip
+
+infrastructure/.terraform.lock.hcl
+infrastructure/.terraform
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
+infrastructure/tfplan
+infrastructure/.terraform.tfstate.lock.info
+
+

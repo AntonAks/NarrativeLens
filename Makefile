@@ -1,6 +1,7 @@
 LAMBDA_DIR=lambda_functions/parsers
 SHARED_TOOLS=shared_tools
 OUTPUT_DIR=lambda_packages
+INFRA_DIR=infrastructure
 
 build-parser-layers:
 	@echo "Building Lambda layer..."
@@ -28,6 +29,27 @@ prepare-parser-lambdas: build-parser-layers
 		fi \
 	done
 	@echo "Packaging complete!"
+
+terraform-init:
+	@echo "Initializing Terraform..."
+	cd $(INFRA_DIR) && terraform init
+
+terraform-plan:
+	@echo "Planning Terraform deployment..."
+	cd $(INFRA_DIR) && terraform plan -out=tfplan
+
+terraform-apply:
+	@echo "Applying Terraform deployment..."
+	cd $(INFRA_DIR) && terraform apply tfplan
+
+terraform-destroy:
+	@echo "Destroying Infrastructure"
+	cd $(INFRA_DIR) && terraform destroy
+
+update-lambdas:
+	@echo "Updating Lambda functions and layers..."
+	cd $(INFRA_DIR) && terraform apply -target=aws_lambda_layer_version.news_parser_layer -target=aws_lambda_function.cnn_parser -target=aws_lambda_function.liga_parser
+	@echo "Lambda functions and layers updated!"
 
 clean:
 	@echo "Cleaning up..."
