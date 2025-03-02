@@ -2,7 +2,7 @@
 resource "aws_s3_bucket" "news_data_bucket" {
   bucket = var.news_data_bucket_name
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
