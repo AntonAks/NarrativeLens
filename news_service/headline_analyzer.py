@@ -5,7 +5,7 @@ from collections import Counter
 from typing import List, Dict
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from shared_tools.s3_helper import S3Uploader, S3Downloader
+from shared_tools.s3_helper import S3Uploader, S3Reader
 
 # Download necessary NLTK resources (run once)
 nltk.download("punkt")
