@@ -4,6 +4,8 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
+--extra-index-url https://be972ebc89f06fe0b3eab11cd056fb9c2621e8d4e2f45a42:@packagecloud.io/cluepoints/rbx-wp/pypi/simple
+
 beautifulsoup4==4.13.3
     # via -r requirements.in
 certifi==2025.1.31
