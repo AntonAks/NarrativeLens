@@ -12,6 +12,13 @@ variable "news_data_bucket_name" {
   default     = "news-analyzer-data-bucket"
 }
 
+variable "headlines_data_bucket_name" {
+  description = "Name of the S3 bucket to store the headlines data"
+  type        = string
+  default     = "headlines-analyzer-data-bucket"
+}
+
+
 variable "lambda_code_bucket_name" {
   description = "Name of the S3 bucket to store Lambda code and layers"
   type        = string

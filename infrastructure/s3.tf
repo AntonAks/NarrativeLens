@@ -21,6 +21,30 @@ resource "aws_s3_bucket_public_access_block" "news_data_bucket_public_access" {
   restrict_public_buckets = true
 }
 
+# S3 bucket for storing headlines data
+resource "aws_s3_bucket" "headlines_data_bucket" {
+  bucket = var.headlines_data_bucket_name
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "headlines_data_bucket_ownership" {
+  bucket = aws_s3_bucket.headlines_data_bucket.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "headlines__data_bucket_public_access" {
+  bucket                  = aws_s3_bucket.headlines_data_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+
 # S3 bucket for Lambda code and layers
 resource "aws_s3_bucket" "lambda_code_bucket" {
   bucket = var.lambda_code_bucket_name

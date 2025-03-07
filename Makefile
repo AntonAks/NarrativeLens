@@ -51,24 +51,20 @@ prepare-lambdas: build-layers
 
 terraform-init:
 	@echo "Initializing Terraform..."
-	cd $(INFRA_DIR) && terraform init
+	cd $(INFRA_DIR) && chmod +x load_env.sh && ./load_env.sh init
 
 terraform-plan:
 	@echo "Planning Terraform deployment..."
-	cd $(INFRA_DIR) && terraform plan -out=tfplan
+	cd $(INFRA_DIR) && chmod +x load_env.sh && ./load_env.sh plan -out=tfplan
 
 terraform-apply:
 	@echo "Applying Terraform deployment..."
-	cd $(INFRA_DIR) && terraform apply tfplan
+	cd $(INFRA_DIR) && chmod +x load_env.sh && ./load_env.sh apply tfplan
 
 terraform-destroy:
 	@echo "Destroying Infrastructure"
-	cd $(INFRA_DIR) && terraform destroy
+	cd $(INFRA_DIR) && chmod +x load_env.sh && ./load_env.sh destroy
 
-update-lambdas:
-	@echo "Updating Lambda functions and layers..."
-	cd $(INFRA_DIR) && terraform apply -target=aws_lambda_layer_version.news_parser_layer -target=aws_lambda_function.cnn_parser -target=aws_lambda_function.liga_parser
-	@echo "Lambda functions and layers updated!"
 
 clean:
 	@echo "Cleaning up..."

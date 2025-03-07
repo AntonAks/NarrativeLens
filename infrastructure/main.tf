@@ -35,6 +35,14 @@ resource "aws_s3_object" "liga_lambda_upload" {
   etag   = filemd5("${var.lambda_packages_dir}/liga.zip")
 }
 
+resource "aws_s3_object" "headline_collector_lambda_upload" {
+  bucket = aws_s3_bucket.lambda_code_bucket.id
+  key = "functions/headline_collector.zip"
+  source = "${var.lambda_packages_dir}/headline_collector.zip"
+  etag   = filemd5("${var.lambda_packages_dir}/headline_collector.zip")
+}
+
+
 # IAM role for Lambda functions
 resource "aws_iam_role" "lambda_role" {
   name = "news_parser_lambda_role"
@@ -76,7 +84,9 @@ resource "aws_iam_policy" "lambda_s3_policy" {
           aws_s3_bucket.news_data_bucket.arn,
           "${aws_s3_bucket.news_data_bucket.arn}/*",
           aws_s3_bucket.lambda_code_bucket.arn,
-          "${aws_s3_bucket.lambda_code_bucket.arn}/*"
+          "${aws_s3_bucket.lambda_code_bucket.arn}/*",
+          aws_s3_bucket.headlines_data_bucket.arn,
+          "${aws_s3_bucket.headlines_data_bucket.arn}/*"
         ]
       }
     ]
@@ -127,6 +137,26 @@ resource "aws_lambda_function" "liga_parser" {
   }
 }
 
+# Headline Collector Lambda function
+resource "aws_lambda_function" "headline_collector" {
+  function_name = "headline_collector"
+  description   = "Lambda function for collect news headlines"
+  s3_bucket     = aws_s3_bucket.lambda_code_bucket.id
+  s3_key        = aws_s3_object.headline_collector_lambda_upload.key
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.12"
+  timeout       = 30
+  memory_size   = 256
+  role = aws_iam_role.lambda_role.arn
+  layers = [aws_lambda_layer_version.news_parser_layer.arn]
+  environment {
+    variables = {
+      NEWS_DATA_BUCKET = aws_s3_bucket.news_data_bucket.bucket
+      HEADLINES_DATA_BUCKET = aws_s3_bucket.headlines_data_bucket.bucket
+    }
+  }
+}
+
 # CloudWatch Log Groups for Lambda functions
 resource "aws_cloudwatch_log_group" "cnn_parser_logs" {
   name              = "/aws/lambda/${aws_lambda_function.cnn_parser.function_name}"
@@ -135,6 +165,11 @@ resource "aws_cloudwatch_log_group" "cnn_parser_logs" {
 
 resource "aws_cloudwatch_log_group" "liga_parser_logs" {
   name              = "/aws/lambda/${aws_lambda_function.liga_parser.function_name}"
+  retention_in_days = 7
+}
+
+resource "aws_cloudwatch_log_group" "headline_collector_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.headline_collector.function_name}"
   retention_in_days = 7
 }
 
