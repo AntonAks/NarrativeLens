@@ -1,30 +1,32 @@
-import json
-import os
 import nltk
 from collections import Counter
-from typing import List, Dict
+from typing import List, Dict, Any
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from shared_tools.s3_helper import S3Uploader, S3Reader
+from shared_tools.s3_helper import S3Reader
 
 # Download necessary NLTK resources (run once)
 nltk.download("punkt")
 nltk.download("stopwords")
+nltk.download('punkt_tab')
 
 # Define stop words for filtering
 stop_words = set(stopwords.words("english"))
 
+
 class HeadlineAnalyzer:
     def __init__(self, bucket_name: str):
         self.bucket_name = bucket_name
-        self.s3_downloader = S3Downloader(bucket_name)
+        self.s3_reader = S3Reader(bucket_name)
 
-    def get_titles_from_s3(self, parser_name: str) -> List[str]:
+    def get_headlines_from_s3(self) -> List[str]:
         """Fetches article headlines from S3."""
-        json_data = self.s3_downloader.download_json(parser_name)
-        return [item["title"] for item in json_data.get("news", [])]
+        prefix = self.s3_reader.get_date_prefix()
+        json_data: dict[str, Any] = self.s3_reader.read_json(prefix + '/headlines.json')
+        titles = list(json_data.keys())
+        return titles
 
-    def process_titles(self, titles: List[str]) -> Dict[str, int]:
+    def get_key_words(self, titles: List[str]) -> Dict[str, int]:
         """Processes headlines and returns the top 20 keywords with their frequency."""
         words = []
         for title in titles:
@@ -34,14 +36,14 @@ class HeadlineAnalyzer:
         word_counts = Counter(words)  # Count word occurrences
         return dict(word_counts.most_common(20))  # Return top 20 keywords
 
+
 if __name__ == "__main__":
-    bucket_name = os.getenv("BUCKET_NAME", "your-s3-bucket-name")
-    analyzer = HeadlineAnalyzer(bucket_name)
+    analyzer = HeadlineAnalyzer("narrative-lens-headlines-data-dev")
 
     # Fetch headlines
-    titles = analyzer.get_titles_from_s3("liga")
-    print("Titles:", titles)
+    _titles = analyzer.get_headlines_from_s3()
+    print("Titles:", _titles)
 
     # Extract top keywords
-    keywords = analyzer.process_titles(titles)
+    keywords = analyzer.get_key_words(_titles)
     print("Top Keywords:", keywords)
