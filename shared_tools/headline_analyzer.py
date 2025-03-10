@@ -39,61 +39,41 @@ class HeadlineAnalyzer:
         word_counts = Counter(words)  # Count word occurrences
         return dict(word_counts.most_common(20))  # Return top 20 keywords
 
-
     def get_important_headlines(self, headlines, max_results=10) -> List[str]:
         bedrock_runtime = boto3.client(
             service_name='bedrock-runtime',
             region_name='us-east-1'
         )
 
+        model_id = "amazon.nova-lite-v1:0"
+
         prompt = f"""
-        Analyze the following news headlines and select the most important ones in terms of politics, economics, and security.
-        For each category, provide up to {max_results} headlines ranked by importance.
-        If a headline doesn't fit any category, ignore it.
-
-        Headlines:
-        {json.dumps(headlines)}
-
-        Output should be in JSON format with the following structure:
-        {{
-            "politics": [
-                {{
-                    "headline": "Headline text",
-                    "importance_score": 8.5,
-                    "reasoning": "Brief explanation of why this is politically important"
-                }}
-            ],
-            "economics": [...],
-            "security": [...]
-        }}
-
-        Each category should have headlines sorted by importance_score in descending order.
-        Only include headlines that are truly relevant to each category.
+                Your task is to analyze the given news headlines and select the {max_results} most important ones, based on relevance to politics, economy, and security.
+                Instructions: Consider the global impact, policy implications, financial consequences, and security concerns. 
+                **Return ONLY a JSON list** with the selected headlines. 
+                Do **not** include any explanations, code, or additional text.
+                Headlines: {headlines}
         """
+        # Start a conversation with the user message.
+        user_message = "Describe the purpose of a 'hello world' program in one line."
+        conversation = [
+            {
+                "role": "user",
+                "content": [{"text": prompt}],
+            }
+        ]
 
-        model_id = "meta.llama3-8b-instruct-v1:0"
-
-        response = bedrock_runtime.invoke_model(
+        # Send the message to the model, using a basic inference configuration.
+        response = bedrock_runtime.converse(
             modelId=model_id,
-            contentType="application/json",
-            accept="application/json",
-            body=json.dumps({
-                "prompt": prompt,
-                "max_gen_len": 2000,
-                "temperature": 0.3,
-                "top_p": 0.9
-            })
+            messages=conversation,
+            inferenceConfig={"maxTokens": 512, "temperature": 0.5, "topP": 0.9},
         )
 
-        print(">>>>>>>>>>>>>>>>")
-        response_body = json.loads(response.get('body').read())
-        print(">>>", response_body)
-        print(">>>>>>>>>>>>>>>>")
+        # Extract and print the response text.
+        response_text = response["output"]["message"]["content"][0]["text"]
+        print(response_text)
 
-
-        result = json.loads(response_body.get('completion'))
-
-        return result
 
 if __name__ == "__main__":
     analyzer = HeadlineAnalyzer("narrative-lens-headlines-data-dev")
@@ -105,7 +85,6 @@ if __name__ == "__main__":
     # Extract top keywords
     keywords = analyzer.get_key_words(_titles)
     print("Top Keywords:", keywords)
-
 
     important_headlines = analyzer.get_important_headlines(_titles)
     print(important_headlines)
