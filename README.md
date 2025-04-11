@@ -6,57 +6,136 @@ NarrativeLens is a serverless AWS application that processes and analyzes narrat
 ![Project Architecture](diagrams/Project%20diagram.drawio.png)
 
 ## Project Structure
+/NarrativeLens
+├── .env
+├── .env.example
+├── .gitignore
+├── Makefile
+├── README.md
+├── diagrams
+│   ├── Project diagram.drawio
+│   ├── Project diagram.drawio.png
+├── infrastructure
+│   ├── .terraform.lock.hcl
+│   ├── load_env.sh
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── s3.tf
+│   ├── scheduler.tf
+│   ├── terraform.tfstate
+│   ├── terraform.tfstate.backup
+│   ├── tfplan
+│   ├── variables.tf
+├── lambda_functions
+│   ├── __init__.py
+│   ├── analyzers
+│   │   ├── __init__.py
+│   │   ├── headlines_analyzer
+│   │   │   ├── __init__.py
+│   │   │   ├── handler.py
+│   ├── collectors
+│   │   ├── __init__.py
+│   │   ├── headline_collector
+│   │   │   ├── __init__.py
+│   │   │   ├── handler.py
+│   ├── layer.zip
+│   ├── parsers
+│   │   ├── __init__.py
+│   │   ├── cnn
+│   │   │   ├── __init__.py
+│   │   │   ├── handler.py
+│   │   ├── liga
+│   │   │   ├── __init__.py
+│   │   │   ├── handler.py
+│   ├── requirements.in
+│   ├── requirements.txt
+├── requirements.in
+├── requirements.txt
+├── shared_tools
+│   ├── __init__.py
+│   ├── headline_analyzer.py
+│   ├── s3_helper.py
+├── structure_paint.py
 
-## Description
-NarrativeLens is a production-ready web application designed for analyzing and understanding narratives in text. The application is fully deployable to AWS infrastructure, providing scalable and reliable text analysis capabilities.
 
-## Features
-- Cloud-based text analysis
-- AWS deployment support
-- Scalable architecture
-- Text narrative processing
-- Web-based interface
+## Prerequisites
+- AWS CLI configured with appropriate credentials
+- Terraform installed
+- Python 3.x
+- pip-tools (for managing Python dependencies)
+- Make
 
-## Installation
+## Setup and Deployment
 
-### Local Development
+### 1. Build Lambda Layers
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/NarrativeLens.git
+make build-layers
+```
+This command:
+- Compiles Python requirements
+- Creates a Lambda layer with all dependencies
 
-# Navigate to the project directory
-cd NarrativeLens
+### 2. Prepare Lambda Functions
+```bash
+make prepare-lambdas
+```
+This command:
+- Packages all Lambda functions (parsers, collectors, analyzers)
+- Includes shared tools in each package
+- Creates deployment-ready ZIP files
 
-# Install dependencies
-npm install
+### 3. Deploy Infrastructure
+```bash
+# Initialize Terraform
+make terraform-init
+
+# Plan deployment
+make terraform-plan
+
+# Apply changes
+make terraform-apply
 ```
 
-### AWS Deployment
-1. Ensure you have AWS CLI installed and configured with appropriate credentials
-2. Configure your AWS deployment settings in your project
-3. Deploy using:
+### Cleanup
+To remove all created resources:
 ```bash
-# Build the project
-npm run build
-
-# Deploy to AWS (specific command depends on your deployment setup)
-npm run deploy
+make terraform-destroy
 ```
 
-## Usage
-### Local Development
+To clean up local build artifacts:
 ```bash
-# Start development server
-npm run dev
-
-# Run tests
-npm test
-
-# Build for production
-npm run build
+make clean
 ```
 
-### Production
-The application can be accessed through your AWS deployment URL once deployed.
+## Infrastructure Components
+- AWS Lambda Functions
+  - Collectors: Data gathering functions
+  - Parsers: Data transformation functions
+  - Analyzers: Text analysis functions
+- S3 Buckets for data storage
+- EventBridge/CloudWatch for scheduling
+- IAM roles and policies
+- [Other AWS services configured in Terraform]
 
-## Project Structure 
+## Development
+
+### Adding New Lambda Functions
+1. Create a new directory in the appropriate category (collectors/parsers/analyzers)
+2. Add your Python function code
+3. Update requirements.in if new dependencies are needed
+4. Run `make prepare-lambdas` to package
+
+### Updating Dependencies
+1. Modify `lambda_functions/requirements.in`
+2. Run `make build-layers` to rebuild the Lambda layer
+
+## Maintenance
+- Monitor AWS CloudWatch logs for Lambda execution
+- Check S3 bucket contents for data processing results
+- Review EventBridge schedules for task timing
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request

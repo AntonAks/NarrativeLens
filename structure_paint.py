@@ -23,5 +23,5 @@ def print_project_structure(root_dir, exclude_dirs=None):
     print(f"{root_dir}\n{structure}")
 
 if __name__ == '__main__':
-    exclude_dirs = ['.venv', '.idea', '.git', '__pycache__']
+    exclude_dirs = ['.venv', '.idea', '.git', '__pycache__', '.terraform', 'lambda_packages']
     print_project_structure(os.getcwd(), exclude_dirs=exclude_dirs)
