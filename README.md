@@ -6,56 +6,32 @@ NarrativeLens is a serverless AWS application that processes and analyzes narrat
 ![Project Architecture](diagrams/Project%20diagram.drawio.png)
 
 ## Project Structure
-/NarrativeLens
-├── .env
-├── .env.example
-├── .gitignore
-├── Makefile
-├── README.md
-├── diagrams
-│   ├── Project diagram.drawio
-│   ├── Project diagram.drawio.png
-├── infrastructure
-│   ├── .terraform.lock.hcl
-│   ├── load_env.sh
-│   ├── main.tf
-│   ├── outputs.tf
-│   ├── s3.tf
-│   ├── scheduler.tf
-│   ├── terraform.tfstate
-│   ├── terraform.tfstate.backup
-│   ├── tfplan
-│   ├── variables.tf
-├── lambda_functions
-│   ├── __init__.py
-│   ├── analyzers
-│   │   ├── __init__.py
-│   │   ├── headlines_analyzer
-│   │   │   ├── __init__.py
-│   │   │   ├── handler.py
-│   ├── collectors
-│   │   ├── __init__.py
-│   │   ├── headline_collector
-│   │   │   ├── __init__.py
-│   │   │   ├── handler.py
-│   ├── layer.zip
-│   ├── parsers
-│   │   ├── __init__.py
-│   │   ├── cnn
-│   │   │   ├── __init__.py
-│   │   │   ├── handler.py
-│   │   ├── liga
-│   │   │   ├── __init__.py
-│   │   │   ├── handler.py
-│   ├── requirements.in
-│   ├── requirements.txt
-├── requirements.in
-├── requirements.txt
-├── shared_tools
-│   ├── __init__.py
-│   ├── headline_analyzer.py
-│   ├── s3_helper.py
-├── structure_paint.py
+NarrativeLens/
+├── .env # Environment variables
+├── .env.example # Example environment variables template
+├── Makefile # Build and deployment automation
+├── diagrams/ # Project architecture diagrams
+│ └── Project diagram.drawio(.png)
+├── infrastructure/ # Terraform IaC configurations
+│ ├── main.tf # Main Terraform configuration
+│ ├── s3.tf # S3 bucket configurations
+│ ├── scheduler.tf # EventBridge scheduler config
+│ ├── variables.tf # Terraform variables
+│ ├── outputs.tf # Terraform outputs
+│ └── load_env.sh # Environment loader script
+├── lambda_functions/ # AWS Lambda function code
+│ ├── analyzers/ # Text analysis functions
+│ │ └── headlines_analyzer/
+│ ├── collectors/ # Data collection functions
+│ │ └── headline_collector/
+│ ├── parsers/ # Data parsing functions
+│ │ ├── cnn/
+│ │ └── liga/
+│ ├── requirements.in # Python dependencies source
+│ └── requirements.txt # Compiled Python dependencies
+└── shared_tools/ # Common utilities
+├── headline_analyzer.py
+└── s3_helper.py
 
 
 ## Prerequisites
