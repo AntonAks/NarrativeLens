@@ -6,6 +6,7 @@ NarrativeLens is a serverless AWS application that processes and analyzes narrat
 ![Project Architecture](diagrams/Project%20diagram.drawio.png)
 
 ## Project Structure
+<pre>
 NarrativeLens/
 ├── .env # Environment variables
 ├── .env.example # Example environment variables template
@@ -32,7 +33,7 @@ NarrativeLens/
 └── shared_tools/ # Common utilities
 ├── headline_analyzer.py
 └── s3_helper.py
-
+</pre>
 
 ## Prerequisites
 - AWS CLI configured with appropriate credentials
